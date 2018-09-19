@@ -12,7 +12,7 @@ import (
 )
 
 func TestMultiSum(t *testing.T) {
-	s, err := MultiSum(strings.NewReader("test"), map[string]hash.Hash{
+	s, err := multiSum(strings.NewReader("test"), map[string]hash.Hash{
 		"SHA256": sha256.New(),
 		"SHA1":   sha1.New(),
 		"MD5":    md5.New(),

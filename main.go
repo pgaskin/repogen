@@ -25,4 +25,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: web interface, auto update, better error handling, pflag
 }

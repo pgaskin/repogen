@@ -51,7 +51,7 @@ func NewDeb(fn string, getContents bool) (*Deb, error) {
 	}
 	defer f.Close()
 
-	d.Sums, err = MultiSum(f, map[string]hash.Hash{
+	d.Sums, err = multiSum(f, map[string]hash.Hash{
 		"SHA256": sha256.New(),
 		"SHA1":   sha1.New(),
 		"MD5sum": md5.New(),
@@ -176,4 +176,26 @@ func openTar(fn string, r io.Reader) (*tar.Reader, error) {
 		return nil, fmt.Errorf("error decompressing data: %v", err)
 	}
 	return tar.NewReader(dr), nil
+}
+
+// multiSum checksums r in multiple hash formats.
+func multiSum(r io.Reader, algs map[string]hash.Hash) (map[string]string, error) {
+	var ws []io.Writer
+	for _, alg := range algs {
+		alg.Reset()
+		ws = append(ws, alg)
+	}
+	hw := io.MultiWriter(ws...)
+
+	_, err := io.Copy(hw, r)
+	if err != nil {
+		return nil, err
+	}
+
+	hm := map[string]string{}
+	for n, alg := range algs {
+		hm[n] = fmt.Sprintf("%x", alg.Sum(nil))
+	}
+
+	return hm, nil
 }
