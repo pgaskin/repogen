@@ -240,9 +240,9 @@ func (r *Repo) MakeDist() error {
 				}
 				packagesBytes := []byte(packages.String())
 				md5Sums = append(md5Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages", md5sum(packagesBytes), len(packagesBytes), compName, archName))
-				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/%s/Packages", sha1sum(packagesBytes), len(packagesBytes), compName, archName))
-				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/%s/Packages", sha256sum(packagesBytes), len(packagesBytes), compName, archName))
-				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/%s/Packages", sha512sum(packagesBytes), len(packagesBytes), compName, archName))
+				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages", sha1sum(packagesBytes), len(packagesBytes), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages", sha256sum(packagesBytes), len(packagesBytes), compName, archName))
+				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages", sha512sum(packagesBytes), len(packagesBytes), compName, archName))
 				err := ioutil.WriteFile(filepath.Join(archRoot, "Packages"), packagesBytes, 0644)
 				if err != nil {
 					return fmt.Errorf("error writing packages file: %v", err)
@@ -250,19 +250,19 @@ func (r *Repo) MakeDist() error {
 
 				gzb := gz(packagesBytes)
 				md5Sums = append(md5Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.gz", md5sum(gzb), len(gzb), compName, archName))
-				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/%s/Packages.gz", sha1sum(gzb), len(gzb), compName, archName))
-				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/%s/Packages.gz", sha256sum(gzb), len(gzb), compName, archName))
-				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/%s/Packages.gz", sha512sum(gzb), len(gzb), compName, archName))
+				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.gz", sha1sum(gzb), len(gzb), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.gz", sha256sum(gzb), len(gzb), compName, archName))
+				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.gz", sha512sum(gzb), len(gzb), compName, archName))
 				err = ioutil.WriteFile(filepath.Join(archRoot, "Packages.gz"), gzb, 0644)
 				if err != nil {
 					return fmt.Errorf("error writing packages.gz file: %v", err)
 				}
 
 				xzb := xzip(packagesBytes)
-				md5Sums = append(md5Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", md5sum(gzb), len(gzb), compName, archName))
-				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha1sum(gzb), len(gzb), compName, archName))
-				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha256sum(gzb), len(gzb), compName, archName))
-				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha512sum(gzb), len(gzb), compName, archName))
+				md5Sums = append(md5Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", md5sum(xzb), len(xzb), compName, archName))
+				sha1Sums = append(sha1Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha1sum(xzb), len(xzb), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha256sum(xzb), len(xzb), compName, archName))
+				sha512Sums = append(sha512Sums, fmt.Sprintf("%x % 8d %s/binary-%s/Packages.xz", sha512sum(xzb), len(xzb), compName, archName))
 				err = ioutil.WriteFile(filepath.Join(archRoot, "Packages.xz"), xzb, 0644)
 				if err != nil {
 					return fmt.Errorf("error writing packages.xz file: %v", err)
