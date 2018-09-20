@@ -1,12 +1,18 @@
 package main
 
+import "io/ioutil"
+
 func main() {
-	maintainerOverride := "Patrick Gaskin <geek1011@outlook.com>"
-	generateContents := true //note: slower, but optional, as whole package needs to be read
+	maintainerOverride := "Patrick Gaskin <geek1011@outlook.com>" // optional
+	origin := "Repository"                                        // optional
+	description := "Test repository"                              // optional
+	generateContents := true                                      //note: slower, but optional, as whole package needs to be read
 	inRoot := "./in"
 	outRoot := "./out"
 
-	r, err := NewRepo(inRoot, outRoot, generateContents, maintainerOverride)
+	buf, _ := ioutil.ReadFile("/home/patrick/Downloads/patrick-g-gpg-key-backup.asc")
+
+	r, err := NewRepo(inRoot, outRoot, generateContents, maintainerOverride, origin, description, string(buf))
 	if err != nil {
 		panic(err)
 	}

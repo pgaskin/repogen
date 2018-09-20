@@ -1,0 +1,1 @@
+rm -rf out; go run main.go repo.go debcontrol.go ar.go debfile.go

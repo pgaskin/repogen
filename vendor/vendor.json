@@ -27,6 +27,30 @@
 			"revisionTime": "2018-05-06T18:05:49Z"
 		},
 		{
+			"checksumSHA1": "amJo1E3F0QxcfxSt+FxDiQbR1wU=",
+			"path": "github.com/ulikunitz/xz",
+			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",
+			"revisionTime": "2018-07-03T11:21:13Z"
+		},
+		{
+			"checksumSHA1": "vjnTkzNrMs5Xj6so/fq0mQ6dT1c=",
+			"path": "github.com/ulikunitz/xz/internal/hash",
+			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",
+			"revisionTime": "2018-07-03T11:21:13Z"
+		},
+		{
+			"checksumSHA1": "m0pm57ASBK/CTdmC0ppRHO17mBs=",
+			"path": "github.com/ulikunitz/xz/internal/xlog",
+			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",
+			"revisionTime": "2018-07-03T11:21:13Z"
+		},
+		{
+			"checksumSHA1": "2vZw6zc8xuNlyVz2QKvdlNSZQ1U=",
+			"path": "github.com/ulikunitz/xz/lzma",
+			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",
+			"revisionTime": "2018-07-03T11:21:13Z"
+		},
+		{
 			"checksumSHA1": "8CE50MRM75NFWRlF4TLRQ5PwXeE=",
 			"path": "github.com/xi2/xz",
 			"revision": "48954b6210f8d154cb5f8484d3a3e1f83489309e",
@@ -47,6 +71,12 @@
 		{
 			"checksumSHA1": "olOKkhrdkYQHZ0lf1orrFQPQrv4=",
 			"path": "golang.org/x/crypto/openpgp/armor",
+			"revision": "0e37d006457bf46f9e6692014ba72ef82c33022c",
+			"revisionTime": "2018-06-14T19:19:50Z"
+		},
+		{
+			"checksumSHA1": "MJ3DiU+XBpCmHCvB57CJ7dqdbu8=",
+			"path": "golang.org/x/crypto/openpgp/clearsign",
 			"revision": "0e37d006457bf46f9e6692014ba72ef82c33022c",
 			"revisionTime": "2018-06-14T19:19:50Z"
 		},

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"compress/gzip"
+	"crypto/md5"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -10,8 +13,14 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
+
+	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp/packet"
 
 	"github.com/ulikunitz/xz"
+	"golang.org/x/crypto/openpgp"
 )
 
 type Repo struct {
@@ -20,9 +29,12 @@ type Repo struct {
 	Dists              map[string]map[string][]*Deb // packages = Dists[dist][component]
 	GenerateContents   bool
 	MaintainerOverride string
+	Origin             string
+	Description        string
+	SignEntity         *openpgp.Entity
 }
 
-func NewRepo(in, out string, generateContents bool, maintainerOverride string) (*Repo, error) {
+func NewRepo(in, out string, generateContents bool, maintainerOverride, origin, description, signPrivateKeyAsc string) (*Repo, error) {
 	var err error
 
 	if in, err = filepath.Abs(in); err != nil {
@@ -37,12 +49,30 @@ func NewRepo(in, out string, generateContents bool, maintainerOverride string) (
 		return nil, errors.New("out must not exist")
 	}
 
+	block, err := armor.Decode(strings.NewReader(signPrivateKeyAsc))
+	if err != nil {
+		return nil, fmt.Errorf("could not load private key: could not decode armor: %v", err)
+	}
+
+	if block.Type != openpgp.PrivateKeyType {
+		return nil, errors.New("could not load private key: no private key in decoded block")
+	}
+
+	pr := packet.NewReader(block.Body)
+	entity, err := openpgp.ReadEntity(pr)
+	if err != nil {
+		return nil, fmt.Errorf("could not load private key: could not read entity: %v", err)
+	}
+
 	return &Repo{
 		InRoot:             in,
 		OutRoot:            out,
 		Dists:              map[string]map[string][]*Deb{},
 		GenerateContents:   generateContents,
 		MaintainerOverride: maintainerOverride,
+		Origin:             origin,
+		Description:        description,
+		SignEntity:         entity,
 	}, nil
 }
 
@@ -168,6 +198,10 @@ func (r *Repo) MakeDist() error {
 		if err := os.MkdirAll(distRoot, 0755); err != nil {
 			return fmt.Errorf("error making dist dir: %v", err)
 		}
+		compNames := []string{}
+		archNames := []string{}
+		md5Sums := []string{}
+		sha256Sums := []string{}
 		for compName, comp := range dist {
 			compRoot := filepath.Join(distRoot, compName)
 			if err := os.MkdirAll(compRoot, 0755); err != nil {
@@ -189,56 +223,41 @@ func (r *Repo) MakeDist() error {
 				var packages strings.Builder
 				for _, d := range arch {
 					c := d.Control.Clone()
-
 					c.MoveToOrderStart("Package")
-
 					if r.MaintainerOverride != "" {
 						c.Set("Maintainer", r.MaintainerOverride)
 					}
-
 					c.Set("Size", fmt.Sprint(d.Size))
 					for field, sum := range d.Sums {
 						c.Set(field, sum)
 					}
-
-					//TODO: filename field
-
+					c.Set("Filename", fmt.Sprintf("pool/%s/%s/%s_%s_%s.deb", compName, getLetter(c.MustGet("Package")), c.MustGet("Package"), c.MustGet("Version"), c.MustGet("Architecture")))
 					packages.WriteString(c.String() + "\n")
 				}
 				packagesBytes := []byte(packages.String())
+				md5Sums = append(md5Sums, fmt.Sprintf("%-32x % 8d %s/%s/Packages", md5sum(packagesBytes), len(packagesBytes), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%-64x % 8d %s/%s/Packages", sha256sum(packagesBytes), len(packagesBytes), compName, archName))
 
-				gzf, err := os.Create(filepath.Join(archRoot, "Packages.gz"))
+				gzb := gz(packagesBytes)
+				md5Sums = append(md5Sums, fmt.Sprintf("%-32x % 8d %s/%s/Packages.gz", md5sum(gzb), len(gzb), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%-64x % 8d %s/%s/Packages.gz", sha256sum(gzb), len(gzb), compName, archName))
+				err := ioutil.WriteFile(filepath.Join(archRoot, "Packages.gz"), gzb, 0644)
 				if err != nil {
-					return fmt.Errorf("error creating packages.gz file: %v", err)
-				}
-				gzw := gzip.NewWriter(gzf)
-				if _, err := gzw.Write(packagesBytes); err != nil {
-					gzw.Close()
-					gzf.Close()
 					return fmt.Errorf("error writing packages.gz file: %v", err)
 				}
-				gzw.Close()
-				gzf.Close()
 
-				xzf, err := os.Create(filepath.Join(archRoot, "Packages.xz"))
+				xzb := xzip(packagesBytes)
+				md5Sums = append(md5Sums, fmt.Sprintf("%-32x % 8d %s/%s/Packages.xz", md5sum(gzb), len(gzb), compName, archName))
+				sha256Sums = append(sha256Sums, fmt.Sprintf("%-64x % 8d %s/%s/Packages.xz", sha256sum(gzb), len(gzb), compName, archName))
+				err = ioutil.WriteFile(filepath.Join(archRoot, "Packages.xz"), xzb, 0644)
 				if err != nil {
-					return fmt.Errorf("error creating packages.xz file: %v", err)
-				}
-				xzw, err := xz.NewWriter(xzf)
-				if err != nil {
-					return fmt.Errorf("error creating xz writer for packages.xz file: %v", err)
-				}
-				if _, err := xzw.Write(packagesBytes); err != nil {
-					xzw.Close()
-					xzf.Close()
 					return fmt.Errorf("error writing packages.xz file: %v", err)
 				}
-				xzw.Close()
-				xzf.Close()
+
+				archNames = append(archNames, archName)
 			}
 
 			if r.GenerateContents {
-
 				for archName, arch := range archs {
 					var b strings.Builder
 					contents := map[string][]string{}
@@ -247,12 +266,10 @@ func (r *Repo) MakeDist() error {
 							if _, ok := contents[fn]; !ok {
 								contents[fn] = []string{}
 							}
-
 							qname := d.Control.MustGet("Package") // qname is the qualified package name [$SECTION/]$NAME
 							if s, ok := d.Control.Get("Section"); ok {
 								qname = s + "/" + qname
 							}
-
 							contents[fn] = append(contents[fn], qname)
 						}
 					}
@@ -268,30 +285,106 @@ func (r *Repo) MakeDist() error {
 					}
 
 					contentsBytes := []byte(b.String())
+					md5Sums = append(md5Sums, fmt.Sprintf("%-32x % 8d %s/Contents-%s", md5sum(contentsBytes), len(contentsBytes), compName, archName))
+					sha256Sums = append(sha256Sums, fmt.Sprintf("%-64x % 8d %s/Contents-%s", sha256sum(contentsBytes), len(contentsBytes), compName, archName))
 
-					gzf, err := os.Create(filepath.Join(compRoot, "Contents-"+archName+".gz"))
+					gzb := gz(contentsBytes)
+					md5Sums = append(md5Sums, fmt.Sprintf("%-32x % 8d %s/Contents-%s.gz", md5sum(gzb), len(gzb), compName, archName))
+					sha256Sums = append(sha256Sums, fmt.Sprintf("%-64x % 8d %s/Contents-%s.gz", sha256sum(gzb), len(gzb), compName, archName))
+					err := ioutil.WriteFile(filepath.Join(compRoot, "Contents-"+archName+".gz"), gzb, 0644)
 					if err != nil {
-						return fmt.Errorf("error creating contents.gz file: %v", err)
+						return fmt.Errorf("error writing contents-"+archName+".gz file: %v", err)
 					}
-					gzw := gzip.NewWriter(gzf)
-					if _, err := gzw.Write(contentsBytes); err != nil {
-						gzw.Close()
-						gzf.Close()
-						return fmt.Errorf("error writing contents.gz file: %v", err)
-					}
-					gzw.Close()
-					gzf.Close()
 				}
 			}
+			compNames = append(compNames, compName)
 		}
-		//TODO: generate release, release.gpg, inrelease? files
+		release := NewControl()
+		if r.Origin != "" {
+			release.Set("Origin", r.Origin)
+		}
+		release.Set("Suite", distName)
+		release.Set("Codename", distName)
+		release.Set("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05 MST"))
+		release.Set("Components", strings.Join(compNames, " "))
+		release.Set("Architectures", strings.Join(archNames, " "))
+		release.Set("Description", r.Description)
+		release.Set("MD5Sum", "\n"+strings.Join(md5Sums, "\n"))
+		release.Set("SHA256", "\n"+strings.Join(sha256Sums, "\n"))
+		err := ioutil.WriteFile(filepath.Join(distRoot, "Release"), []byte(release.String()), 0644)
+		if err != nil {
+			return fmt.Errorf("error writing release file: %v", err)
+		}
+
+		releasegpg := new(bytes.Buffer)
+		err = openpgp.ArmoredDetachSign(releasegpg, r.SignEntity, strings.NewReader(release.String()), nil)
+		if err != nil {
+			return fmt.Errorf("error signing release file: %v", err)
+		}
+		err = ioutil.WriteFile(filepath.Join(distRoot, "Release.gpg"), releasegpg.Bytes(), 0644)
+		if err != nil {
+			return fmt.Errorf("error writing release.gpg file: %v", err)
+		}
+
+		inrelease := new(bytes.Buffer)
+		dec, err := clearsign.Encode(inrelease, r.SignEntity.PrivateKey, nil)
+		if err != nil {
+			return fmt.Errorf("error clearsigning release file: %v", err)
+		}
+		if _, err := io.WriteString(dec, release.String()); err != nil {
+			return fmt.Errorf("error clearsigning release file: %v", err)
+		}
+		dec.Close()
+		err = ioutil.WriteFile(filepath.Join(distRoot, "InRelease"), inrelease.Bytes(), 0644)
+		if err != nil {
+			return fmt.Errorf("error writing inrelease file: %v", err)
+		}
 	}
 	return nil
 }
 
 func getLetter(pkg string) string {
-	if strings.HasSuffix(pkg, "lib") {
+	if strings.HasPrefix(pkg, "lib") {
 		return pkg[:4]
 	}
 	return pkg[:1]
+}
+
+func md5sum(data []byte) []byte {
+	s := md5.New()
+	if _, err := s.Write(data); err != nil {
+		panic(err)
+	}
+	return s.Sum(nil)
+}
+
+func sha256sum(data []byte) []byte {
+	s := sha256.New()
+	if _, err := s.Write(data); err != nil {
+		panic(err)
+	}
+	return s.Sum(nil)
+}
+
+func gz(data []byte) []byte {
+	b := new(bytes.Buffer)
+	w := gzip.NewWriter(b)
+	if _, err := w.Write(data); err != nil {
+		panic(err)
+	}
+	w.Close()
+	return b.Bytes()
+}
+
+func xzip(data []byte) []byte {
+	b := new(bytes.Buffer)
+	w, err := xz.NewWriter(b)
+	if err != nil {
+		panic(err)
+	}
+	if _, err := w.Write(data); err != nil {
+		panic(err)
+	}
+	w.Close()
+	return b.Bytes()
 }
