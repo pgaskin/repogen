@@ -15,6 +15,18 @@
 			"revisionTime": "2016-10-16T00:33:48Z"
 		},
 		{
+			"checksumSHA1": "Tu0hTSicSOL7cd5xSoGH584zhY8=",
+			"path": "github.com/mattn/go-zglob",
+			"revision": "2ea3427bfa539cca900ca2768d8663ecc8a708c1",
+			"revisionTime": "2018-08-03T00:18:19Z"
+		},
+		{
+			"checksumSHA1": "kyFhN/pm/n1VV6NBHcKP5b+tEhw=",
+			"path": "github.com/mattn/go-zglob/fastwalk",
+			"revision": "2ea3427bfa539cca900ca2768d8663ecc8a708c1",
+			"revisionTime": "2018-08-03T00:18:19Z"
+		},
+		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
