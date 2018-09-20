@@ -85,5 +85,6 @@ func main() {
 		fmt.Println("waiting for changes")
 	}
 
-	// TODO: web interface, auto update, better error handling, pflag
+	// TODO: web interface, auto update, better error handling, pflag, validate dist and component names
+	// modes: --watch, --serve, can be used together, if left out, just generate
 }

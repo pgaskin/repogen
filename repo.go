@@ -168,6 +168,8 @@ func (r *Repo) MakePool() error {
 					return fmt.Errorf("error opening package file for copying: %v", err)
 				}
 
+				// TODO: check if exists already, if it does, and has a different checksum, give an error, as packages with the same name/version/arch must be identical
+
 				of, err := os.Create(pkgFName)
 				if err != nil {
 					f.Close()

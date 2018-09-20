@@ -28,7 +28,7 @@ func NewControlFromString(in string) (*Control, error) {
 	}
 
 	var cur string
-	lines := strings.Split(strings.TrimRight(strings.Replace(in, "\r\n", "\n", -1), "\n")+"\n", "\n") // normalize newline format, trailing newlines
+	lines := strings.Split(strings.Trim(strings.Replace(in, "\r\n", "\n", -1), "\n")+"\n", "\n") // normalize newline format, trailing newlines
 	for n, line := range lines {
 		switch {
 		// comment
