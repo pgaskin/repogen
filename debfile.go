@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"hash"
 	"io"
@@ -52,6 +53,7 @@ func NewDeb(fn string, getContents bool) (*Deb, error) {
 	defer f.Close()
 
 	d.Sums, err = multiSum(f, map[string]hash.Hash{
+		"SHA512": sha512.New(),
 		"SHA256": sha256.New(),
 		"SHA1":   sha1.New(),
 		"MD5sum": md5.New(),

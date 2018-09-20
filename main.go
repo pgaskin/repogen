@@ -32,5 +32,10 @@ func main() {
 		panic(err)
 	}
 
+	err = r.MakeRoot()
+	if err != nil {
+		panic(err)
+	}
+
 	// TODO: web interface, auto update, better error handling, pflag
 }
