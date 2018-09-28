@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -99,6 +100,10 @@ func (r *Repo) Scan() error {
 		distName, distRoot := dfi.Name(), filepath.Join(r.InRoot, dfi.Name())
 		dists[distName] = map[string][]*Deb{}
 
+		if !validateName(distName) {
+			return fmt.Errorf("invalid dist name '%s': must match [a-z-]", distName)
+		}
+
 		cfs, err := ioutil.ReadDir(distRoot)
 		if err != nil {
 			return fmt.Errorf("could not list in dir subdir: %v", err)
@@ -109,6 +114,10 @@ func (r *Repo) Scan() error {
 			}
 			compName, compRoot := cfi.Name(), filepath.Join(distRoot, cfi.Name())
 			dists[distName][compName] = []*Deb{}
+
+			if !validateName(compName) {
+				return fmt.Errorf("invalid component name '%s': must match [a-z-]", compName)
+			}
 
 			pfs, err := ioutil.ReadDir(compRoot)
 			if err != nil {
@@ -397,13 +406,17 @@ func (r *Repo) MakeRoot() error {
 		return fmt.Errorf("error writing pubkey file: %v", err)
 	}
 
-	// TODO: nicer format for json, as a raw dump is barely useful.
 	buf, err := json.Marshal(r.Dists)
 	if err != nil {
 		return fmt.Errorf("error generating json index: %v", err)
 	}
 
 	err = ioutil.WriteFile(filepath.Join(r.OutRoot, "packages.json"), buf, 0644)
+	if err != nil {
+		return fmt.Errorf("error writing json index: %v", err)
+	}
+
+	err = ioutil.WriteFile(filepath.Join(r.OutRoot, "packages.js"), append([]byte("window.packages = "), buf...), 0644)
 	if err != nil {
 		return fmt.Errorf("error writing json index: %v", err)
 	}
@@ -471,4 +484,10 @@ func xzip(data []byte) []byte {
 	}
 	w.Close()
 	return b.Bytes()
+}
+
+var nameRe = regexp.MustCompile("^[a-z-]+$")
+
+func validateName(name string) bool {
+	return nameRe.MatchString(name)
 }

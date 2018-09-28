@@ -111,6 +111,12 @@ func (c *Control) MustGet(key string) string {
 	return val
 }
 
+// MightGet gets the value of a control variable or returns an empty string.
+func (c *Control) MightGet(key string) string {
+	val, _ := c.Values[key]
+	return val
+}
+
 // Set sets the value of a control variable.
 func (c *Control) Set(key, value string) {
 	c.Values[key] = value
