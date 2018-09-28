@@ -131,7 +131,7 @@ func (r *Repo) Scan() error {
 
 				d, err := NewDeb(pkgFname, r.GenerateContents)
 				if err != nil {
-					return fmt.Errorf("could not read deb: %v", err)
+					return fmt.Errorf("could not read deb '%s': %v", pkgFname, err)
 				}
 				dists[distName][compName] = append(dists[distName][compName], d)
 			}
@@ -174,7 +174,7 @@ func (r *Repo) MakePool() error {
 
 				f, err := os.Open(d.Filename)
 				if err != nil {
-					return fmt.Errorf("error opening package file for copying: %v", err)
+					return fmt.Errorf("error opening package file '%s' for copying: %v", d.Filename, err)
 				}
 
 				// TODO: check if exists already, if it does, and has a different checksum, give an error, as packages with the same name/version/arch must be identical
@@ -182,7 +182,7 @@ func (r *Repo) MakePool() error {
 				of, err := os.Create(pkgFName)
 				if err != nil {
 					f.Close()
-					return fmt.Errorf("error opening output package file for copying: %v", err)
+					return fmt.Errorf("error opening output package file '%s' for copying: %v", pkgFName, err)
 				}
 
 				_, err = io.Copy(of, f)
