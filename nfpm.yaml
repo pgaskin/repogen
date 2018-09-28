@@ -1,0 +1,25 @@
+name: repogen
+arch: amd64
+platform: linux
+version: ${APP_VERSION_NO_V}
+section: utils
+priority: optional
+
+replaces:
+provides:
+depends:
+recommends:
+suggests:
+conflicts:
+
+maintainer: Patrick Gaskin <geek1011@outlook.com>
+description: |
+  repogen is an easy way to generate a Debian repository.
+vendor: Patrick Gaskin
+homepage: https://github.com/geek1011/repogen
+license: MIT
+
+bindir: /usr/bin
+files:
+  ./build/repogen-linux-64bit: /usr/bin/repogen
+config_files:
