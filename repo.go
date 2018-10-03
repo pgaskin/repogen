@@ -7,7 +7,6 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -404,21 +403,6 @@ func (r *Repo) MakeRoot() error {
 	err = ioutil.WriteFile(filepath.Join(r.OutRoot, "key.asc"), w.Bytes(), 0644)
 	if err != nil {
 		return fmt.Errorf("error writing pubkey file: %v", err)
-	}
-
-	buf, err := json.Marshal(r.Dists)
-	if err != nil {
-		return fmt.Errorf("error generating json index: %v", err)
-	}
-
-	err = ioutil.WriteFile(filepath.Join(r.OutRoot, "packages.json"), buf, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing json index: %v", err)
-	}
-
-	err = ioutil.WriteFile(filepath.Join(r.OutRoot, "packages.js"), append([]byte("window.packages = "), buf...), 0644)
-	if err != nil {
-		return fmt.Errorf("error writing json index: %v", err)
 	}
 
 	return nil
