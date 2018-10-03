@@ -247,7 +247,7 @@ func (r *Repo) MakeDist() error {
 					for field, sum := range d.Sums {
 						c.Set(field, sum)
 					}
-					c.Set("Filename", fmt.Sprintf("pool/%s/%s/%s_%s_%s.deb", compName, getLetter(c.MustGet("Package")), c.MustGet("Package"), c.MustGet("Version"), c.MustGet("Architecture")))
+					c.Set("Filename", fmt.Sprintf("pool/%s/%s/%s/%s_%s_%s.deb", compName, getLetter(c.MustGet("Package")), c.MustGet("Package"), c.MustGet("Package"), c.MustGet("Version"), c.MustGet("Architecture")))
 					packages.WriteString(c.String() + "\n")
 				}
 				packagesBytes := []byte(packages.String())
