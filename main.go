@@ -180,6 +180,4 @@ func main() {
 		fmt.Println("Info: waiting for changes")
 	}
 	fmt.Println("Info: successfully generated repository")
-
-	// TODO: server option
 }
