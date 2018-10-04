@@ -202,6 +202,11 @@ func (r *Repo) GenerateWeb() error {
 			return fmt.Errorf("error generating dist/index.html: %v", err)
 		}
 
+		distPkgs := []string{}
+		for pkgName := range dist {
+			distPkgs = append(distPkgs, pkgName)
+		}
+
 		for pkgName, pkg := range dist {
 			webRootDistPkg := filepath.Join(webRootDist, pkgName)
 			err := os.Mkdir(webRootDistPkg, 0755)
@@ -210,9 +215,10 @@ func (r *Repo) GenerateWeb() error {
 			}
 
 			err = render(filepath.Join(webRootDistPkg, "index.html"), pkgName+" - Packages", "../../", pkgTmpl, map[string]interface{}{
-				"dist":    distName,
-				"pkgName": pkgName,
-				"pkg":     pkg,
+				"dist":         distName,
+				"pkgName":      pkgName,
+				"pkg":          pkg,
+				"distPackages": distPkgs,
 			})
 			if err != nil {
 				return fmt.Errorf("error generating dist/pkg/index.html: %v", err)
@@ -285,6 +291,7 @@ var tmplFuncs = template.FuncMap{
 		}
 		return template.CSS(o.String())
 	},
+	"inSlice": inSlice,
 }
 
 var baseTmpl = `
@@ -838,24 +845,47 @@ var pkgTmpl = `
 					<div class="block__title">Dependencies</div>
 					<div class="block__body block__body--nopadding">
 						<div class="block__body__list">
-							<!-- TODO: only link existing packages -->
 							{{range $pkgspec := .pkg.Depends}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="depends" class="depends-dot depends-dot--depends"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="depends" class="depends-dot depends-dot--depends"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="depends" class="depends-dot depends-dot--depends"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 							{{range $pkgspec := .pkg.PreDepends}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="pre-depends" class="depends-dot depends-dot--pre-depends"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="pre-depends" class="depends-dot depends-dot--pre-depends"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="pre-depends" class="depends-dot depends-dot--pre-depends"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 							{{range $pkgspec := .pkg.Recommends}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="recommends" class="depends-dot depends-dot--recommends"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="recommends" class="depends-dot depends-dot--recommends"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="recommends" class="depends-dot depends-dot--recommends"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 							{{range $pkgspec := .pkg.Suggests}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="suggests" class="depends-dot depends-dot--suggests"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="suggests" class="depends-dot depends-dot--suggests"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="suggests" class="depends-dot depends-dot--suggests"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 							{{range $pkgspec := .pkg.Conflicts}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="conflicts" class="depends-dot depends-dot--conflicts"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="conflicts" class="depends-dot depends-dot--conflicts"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="conflicts" class="depends-dot depends-dot--conflicts"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 							{{range $pkgspec := .pkg.Breaks}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="breaks" class="depends-dot depends-dot--breaks"></span> {{$pkgspec}}</a>
+								{{if (inSlice $.distPackages ($pkgspec | dependsToPkg))}}
+									<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="breaks" class="depends-dot depends-dot--breaks"></span> {{$pkgspec}}</a>
+								{{else}}
+									<div class="block__body__list__item"><span title="breaks" class="depends-dot depends-dot--breaks"></span> {{$pkgspec}}</div>
+								{{end}}
 							{{end}}
 						</div>
 					</div>
@@ -867,7 +897,13 @@ var pkgTmpl = `
 					<div class="block__body block__body--nopadding">
 						<div class="block__body__list">
 							{{range $otherDist := .pkg.OtherDists}}
-								<a href="{{$otherDist}}/{{$.pkgName}}" class="block__body__list__item"><i class="fa fa-link block__body__list__item__icon"></i> {{$otherDist}}</a>
+								<a href="{{$otherDist}}/{{$.pkgName}}" class="block__body__list__item"><i class="fa fa-link block__body__list__item__icon"></i>
+									{{if eq $.dist $otherDist}}
+										<b>{{$otherDist}}</b>
+									{{else}}
+										{{$otherDist}}
+									{{end}}
+								</a>
 							{{end}}
 						</div>
 					</div>
