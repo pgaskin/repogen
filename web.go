@@ -304,8 +304,13 @@ var baseTmpl = `
 <body>
 	<div class="nav">
 		<div class="nav__section nav__section--left">
-			<a class="nav__section__item" href="../">Home</a>
-			<a class="nav__section__item" href="index.html">Packages</a>
+			<a class="nav__section__item" href="index.html">Home</a>
+			{{if .data.dist}}
+				<a class="nav__section__item" href="index.html">Dists</a>
+				{{if .data.pkg}}
+					<a class="nav__section__item" href="{{.data.dist}}/">{{.data.dist}}</a>
+				{{end}}
+			{{end}}
 		</div>
 		<div class="nav__section nav__section--left">
 			<a class="nav__section__item" href="../key.asc">GPG Key</a>
