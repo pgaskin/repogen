@@ -13,19 +13,19 @@ suggests:
 conflicts:
 
 maintainer: Patrick Gaskin <geek1011@outlook.com>
-description: |
+description: |1
   easy-to-use debian repository generator
   repogen is an easy way to generate Debian repositories.
   .
   Features:
-   - Zero configuration
-   - Override Maintainer field
-   - Web interface for browsing packages
-   - Fast
-   - Generates Contents index
-   - Multiple distributions and components
-   - GPG signing
-   - Automatic updating
+  - Zero configuration
+  - Override Maintainer field
+  - Web interface for browsing packages
+  - Fast
+  - Generates Contents index
+  - Multiple distributions and components
+  - GPG signing
+  - Automatic updating
 vendor: Patrick Gaskin
 homepage: https://github.com/geek1011/repogen
 license: MIT
