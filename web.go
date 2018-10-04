@@ -180,7 +180,8 @@ func (r *Repo) GenerateWeb() error {
 	}
 
 	err = render(filepath.Join(webRoot, "index.html"), "Packages", "", distsTmpl, map[string]interface{}{
-		"dists": dists,
+		"dists":    dists,
+		"packages": packages,
 	})
 	if err != nil {
 		return fmt.Errorf("error generating index.html: %v", err)
@@ -598,6 +599,56 @@ body {
     background:#dae0ec;
 }
 
+.header {
+    display: block;
+    font-family: Bitter, 'Open Sans', Helvetica, sans-serif;
+    margin: 15px 30px;
+    font-size: 24px;
+}
+
+.dist-cards {
+    display: block;
+    margin: 15px 30px;
+}
+
+.dist-card,
+.dist-card:link,
+.dist-card:visited {
+    display: block;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: inherit;
+    text-decoration: none;
+    background: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+	outline: 0;
+	cursor: pointer;
+}
+
+.dist-card:hover {
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, .10);
+}
+
+.dist-card__name {
+    display: block;
+    font-family: Bitter, 'Open Sans', Helvetica, sans-serif;
+    font-size: 18px;
+    color: #36b;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.dist-card__name:hover {
+    text-decoration: underline;
+}
+
+.dist-card__packages {
+    display: block;
+}
+
 @media only screen and (min-width: 768px) {
     .package-info__header__name {
         display: inline-block;
@@ -651,16 +702,27 @@ body {
     .block__body__list__item--kv .block__body__list__item__value {
         display: inline-block;
         vertical-align: top;
-    }
+	}
+	
+	.dist-card,
+	.dist-card:link,
+	.dist-card:visited {
+		display: inline-block;
+		vertical-align: top;
+		margin-right: 15px;
+		width: 150px;
+	}
 }
 `
 
 var distsTmpl = `
 {{define "content"}}
+	<div class="header">Distributions</div>
 	<div class="dist-cards">
 		{{range $dist := .dists}}
 			<a class="dist-card" href="{{$dist}}/">
 				<div class="dist-card__name">{{$dist}}</div>
+				<div class="dist-card__packages">{{len (index $.packages $dist)}} packages</div>
 			</a>
 		{{end}}
 	</div>
