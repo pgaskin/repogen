@@ -136,7 +136,6 @@ func (r *Repo) GenerateWeb() error {
 
 	for distName, tmp := range packages {
 		for pkgName := range tmp {
-			// TODO: Actually generate this
 			(*packages[distName][pkgName]).AvailabilityTableHeader = append([]string{""}, archs...)
 
 			t := [][]map[string]string{}
@@ -156,6 +155,10 @@ func (r *Repo) GenerateWeb() error {
 				t = append(t, row)
 			}
 			(*packages[distName][pkgName]).AvailabilityTable = t
+
+			sort.Slice(t, func(i, j int) bool {
+				return !anewer(t[i][0]["version"], t[j][0]["version"])
+			})
 		}
 	}
 
