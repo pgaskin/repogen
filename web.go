@@ -187,6 +187,17 @@ func (r *Repo) GenerateWeb() error {
 		return fmt.Errorf("error generating index.html: %v", err)
 	}
 
+	err = os.Mkdir(filepath.Join(webRoot, "search"), 0755)
+	if err != nil {
+		return fmt.Errorf("error generating search/: %v", err)
+	}
+	err = render(filepath.Join(webRoot, "search", "index.html"), "Search - Packages", "../", searchTmpl, map[string]interface{}{
+		"js": template.JS(searchJS),
+	})
+	if err != nil {
+		return fmt.Errorf("error generating search/index.html: %v", err)
+	}
+
 	for distName, dist := range packages {
 		webRootDist := filepath.Join(webRoot, distName)
 		err := os.Mkdir(webRootDist, 0755)
@@ -321,7 +332,7 @@ var baseTmpl = `
 		</div>
 		<div class="nav__section nav__section--left">
 			<a class="nav__section__item" href="../key.asc">GPG Key</a>
-			<a class="nav__section__item" href="search/">Search (coming soon)</a>
+			<a class="nav__section__item" href="search/">Search</a>
 		</div>
 	</div>
 
@@ -923,3 +934,14 @@ var pkgTmpl = `
 	</div>
 {{end}}
 `
+
+var searchTmpl = `
+{{define "content"}}
+	<div class="header header--center">Search</div>
+	<!-- TODO: search form -->
+	Coming soon
+	<script>{{.js}}</script>
+{{end}}
+`
+
+var searchJS = ``
