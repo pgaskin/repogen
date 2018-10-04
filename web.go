@@ -137,12 +137,25 @@ func (r *Repo) GenerateWeb() error {
 	for distName, tmp := range packages {
 		for pkgName := range tmp {
 			// TODO: Actually generate this
-			(*packages[distName][pkgName]).AvailabilityTableHeader = []string{"", "amd64", "i386", "arm"}
-			(*packages[distName][pkgName]).AvailabilityTable = [][]map[string]string{
-				{{"version": "1.0.0-1"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb", "non-free": "pool/a/b/c/d.deb"}},
-				{{"version": "1.0.1-1"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}},
-				{{"version": "1.0.1-2"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {}},
+			(*packages[distName][pkgName]).AvailabilityTableHeader = append([]string{""}, archs...)
+
+			t := [][]map[string]string{}
+			for pversion, parchs := range (*packages[distName][pkgName]).Availability {
+				row := []map[string]string{{"version": pversion}}
+				for _, arch := range archs {
+					col := map[string]string{}
+					for parch, pcomps := range parchs {
+						if parch == arch {
+							for pcomp, link := range pcomps {
+								col[pcomp] = link
+							}
+						}
+					}
+					row = append(row, col)
+				}
+				t = append(t, row)
 			}
+			(*packages[distName][pkgName]).AvailabilityTable = t
 		}
 	}
 
@@ -369,6 +382,10 @@ body {
     background: linear-gradient(to bottom, #fafafa 0%, #ebebeb 100%);
     padding: 15px 30px;
     border-bottom: 1px solid #e0e0e0;
+}
+
+.package-info__header__dist {
+    display: block;
 }
 
 .package-info__header__name {
@@ -664,6 +681,7 @@ var pkgTmpl = `
 {{define "content"}}
 	<div class="package-info">
 		<div class="package-info__header">
+			<div class="package-info__header__dist">dist: {{.dist}}</div>	
 			<div class="package-info__header__name">{{.pkgName}}</div>	
 			<div class="package-info__header__shortdesc">{{.pkg.ShortDescription}}</div>
 		</div>
