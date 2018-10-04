@@ -45,6 +45,42 @@
 			"revisionTime": "2018-05-06T18:05:49Z"
 		},
 		{
+			"checksumSHA1": "CGdE8im/0azf4oSqJLKa8Lrmzic=",
+			"path": "github.com/tdewolff/minify",
+			"revision": "a8ba821b5bd8dce36de6fa5bca9a8e6d39d8e609",
+			"revisionTime": "2018-09-13T03:50:26Z"
+		},
+		{
+			"checksumSHA1": "QbnJmDykGIlimuPnItybxrzUcV8=",
+			"path": "github.com/tdewolff/minify/css",
+			"revision": "a8ba821b5bd8dce36de6fa5bca9a8e6d39d8e609",
+			"revisionTime": "2018-09-13T03:50:26Z"
+		},
+		{
+			"checksumSHA1": "ytbPF6rJvRmYqFuiU5bWxMjnxJ0=",
+			"path": "github.com/tdewolff/parse",
+			"revision": "bcb5c6a1c04e8d05f485fa930b24c22fbcecc533",
+			"revisionTime": "2018-08-25T09:00:06Z"
+		},
+		{
+			"checksumSHA1": "bFczQeEt4V5STOU9jd9rHxnyAD0=",
+			"path": "github.com/tdewolff/parse/buffer",
+			"revision": "bcb5c6a1c04e8d05f485fa930b24c22fbcecc533",
+			"revisionTime": "2018-08-25T09:00:06Z"
+		},
+		{
+			"checksumSHA1": "4xsfqWedUhFGbwi1Qou6h8kgrQo=",
+			"path": "github.com/tdewolff/parse/css",
+			"revision": "bcb5c6a1c04e8d05f485fa930b24c22fbcecc533",
+			"revisionTime": "2018-08-25T09:00:06Z"
+		},
+		{
+			"checksumSHA1": "IrorTJ5lfYWU5QdWqMuLexxzoYA=",
+			"path": "github.com/tdewolff/parse/strconv",
+			"revision": "bcb5c6a1c04e8d05f485fa930b24c22fbcecc533",
+			"revisionTime": "2018-08-25T09:00:06Z"
+		},
+		{
 			"checksumSHA1": "amJo1E3F0QxcfxSt+FxDiQbR1wU=",
 			"path": "github.com/ulikunitz/xz",
 			"revision": "636d36a76670e6c700f22fd5f4588679ff2896c4",

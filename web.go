@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,7 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"html/template"
+	"github.com/tdewolff/minify"
+	"github.com/tdewolff/minify/css"
 )
 
 type pkgInfo struct {
@@ -244,7 +247,7 @@ func render(outfn string, title string, base string, t string, d interface{}) er
 	defer f.Close()
 	return template.Must(template.Must(template.New("").Funcs(tmplFuncs).Parse(t)).Parse(baseTmpl)).Execute(f, map[string]interface{}{
 		"title": title,
-		"css":   baseCSS,
+		"css":   template.CSS(baseCSS),
 		"data":  d,
 		"base":  base,
 	})
@@ -256,6 +259,14 @@ var tmplFuncs = template.FuncMap{
 	},
 	"dependsToPkg": func(pkgSpec string) string {
 		return strings.Split(pkgSpec, " ")[0]
+	},
+	"minifyCSS": func(in template.CSS) template.CSS {
+		o, m := new(bytes.Buffer), minify.New()
+		m.AddFunc("text/css", css.Minify)
+		if m.Minify("text/css", o, strings.NewReader(string(in))) != nil {
+			return in
+		}
+		return template.CSS(o.String())
 	},
 }
 
@@ -269,7 +280,7 @@ var baseTmpl = `
 	<base href="{{.base}}" />
 	<title>{{.title}}</title>
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet" />
-	<style>{{.css}}</style>
+	<style>{{.css | minifyCSS}}</style>
 	<link href="https://fonts.googleapis.com/css?family=Bitter:400,400i,700|Open+Sans:300,300i,400,400i,700,700i" rel="stylesheet" /> 
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
 </head>
@@ -537,6 +548,7 @@ body {
 
 .version-table__col--arch {
     min-width: 100px;
+    font-size: 12px;
 }
 
 .version-table__col a:link,
@@ -689,12 +701,6 @@ var pkgTmpl = `
 					</div>
 				</div>
 				<div class="block">
-					<div class="block__title">Description</div>
-					<div class="block__body">
-						{{.pkg.Description | br}}
-					</div>
-				</div>
-				<div class="block">
 					<div class="block__title">Metadata</div>
 					<div class="block__body block__body--nopadding">
 						<div class="block__body__list">
@@ -719,6 +725,12 @@ var pkgTmpl = `
 								</div>
 							{{end}}
 						</div>
+					</div>
+				</div>
+				<div class="block">
+					<div class="block__title">Description</div>
+					<div class="block__body">
+						{{.pkg.Description | br}}
 					</div>
 				</div>
 				<div class="block">
