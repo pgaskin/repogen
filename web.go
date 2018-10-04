@@ -606,14 +606,20 @@ body {
     font-size: 24px;
 }
 
+.header.header--center {
+	text-align: center;
+}
+
 .dist-cards {
     display: block;
-    margin: 15px 30px;
+	margin: 15px 30px;
+	text-align: center;
 }
 
 .dist-card,
 .dist-card:link,
 .dist-card:visited {
+	text-align: left;
     display: block;
     margin-bottom: 15px;
     padding: 10px 15px;
@@ -710,6 +716,7 @@ body {
 		display: inline-block;
 		vertical-align: top;
 		margin-right: 15px;
+		margin-left: 15px;
 		width: 150px;
 	}
 }
@@ -717,7 +724,7 @@ body {
 
 var distsTmpl = `
 {{define "content"}}
-	<div class="header">Distributions</div>
+	<div class="header header--center">Distributions</div>
 	<div class="dist-cards">
 		{{range $dist := .dists}}
 			<a class="dist-card" href="{{$dist}}/">
@@ -731,13 +738,19 @@ var distsTmpl = `
 
 var distTmpl = `
 {{define "content"}}
-	<div class="package-table">
-		{{range $packageName, $package := .packages}}
-			<a class="package-row" href="{{$.dist}}/{{$packageName}}/">
-				<div class="package-row__col package-row__col--name">{{$packageName}}</div>
-				<div class="package-row__col package-row__col--description">{{$package.ShortDescription}}</div>
-			</a>
-		{{end}}
+	<div class="header header--center">Packages in {{.dist}}</div>
+	<div class="block" style="margin:15px 30px;">
+		<div class="block__title">All Packages</div>
+		<div class="block__body block__body--nopadding">
+			<div class="block__body__list">
+				{{range $packageName, $package := .packages}}
+					<a class="block__body__list__item block__body__list__item--kv" href="{{$.dist}}/{{$packageName}}/">
+						<div class="block__body__list__item__key">{{$packageName}}</div>
+						<div class="block__body__list__item__value">{{$package.ShortDescription}}</div>
+					</a>
+				{{end}}
+			</div>
+		</div>
 	</div>
 {{end}}
 `
