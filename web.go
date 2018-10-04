@@ -138,7 +138,7 @@ func (r *Repo) GenerateWeb() error {
 			(*packages[distName][pkgName]).AvailabilityTable = [][]map[string]string{
 				{{"version": "1.0.0-1"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb", "non-free": "pool/a/b/c/d.deb"}},
 				{{"version": "1.0.1-1"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}},
-				{{"version": "1.0.1-2"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}},
+				{{"version": "1.0.1-2"}, {"main": "pool/a/b/c/d.deb"}, {"main": "pool/a/b/c/d.deb"}, {}},
 			}
 		}
 	}
@@ -264,35 +264,363 @@ var baseTmpl = `
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<base href="{{.base}}" />
 	<title>{{.title}}</title>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css" rel="stylesheet" />
 	<style>{{.css}}</style>
-	<link href="https://fonts.googleapis.com/css?family=Bitter:400,400i,700|Open+Sans:300,300i,400,400i,700,700i" rel="stylesheet"> 
+	<link href="https://fonts.googleapis.com/css?family=Bitter:400,400i,700|Open+Sans:300,300i,400,400i,700,700i" rel="stylesheet" /> 
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
 </head>
 <body>
 	<div class="nav">
 		<div class="nav__section nav__section--left">
-			<a href="index.html">Packages</a>
+			<a class="nav__section__item" href="../">Home</a>
+			<a class="nav__section__item" href="index.html">Packages</a>
 		</div>
 		<div class="nav__section nav__section--left">
-			<a href="../key.asc">GPG Key</a>
-			<a href="search/">Search (coming soon)</a>
+			<a class="nav__section__item" href="../key.asc">GPG Key</a>
+			<a class="nav__section__item" href="search/">Search (coming soon)</a>
 		</div>
 	</div>
 
 	<div class="content">
 		{{template "content" .data}}
 	</div>
+
+	<div class="footer">
+		Powered by <a href="https://github.com/geek1011/repogen">repogen</a>
+	</div>
 </body>
 </html>
 `
 
 var baseCSS = `
-/* TODO: write css */
+html, body {
+    padding: 0;
+    margin: 0;
+}
 
+body {
+    font-family: 'Open Sans', Helvetica, sans-serif;
+    font-size: 14px;
+    background: #fafafa;
+    line-height: 1.42;
+}
+
+.nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background: #31447a;
+    color: #fff;
+}
+
+.nav__section {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 15px;
+}
+
+.nav__section__item {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 11px 15px;
+}
+
+.nav__section__item:link,
+.nav__section__item:visited {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav__section__item:hover {
+    background: #303b6b;
+}
+
+.nav__section__item.active {
+    background: #526da4;
+}
+
+.package-info {
+    display: block;
+}
+
+.package-info__header {
+    display: block;
+    background: #ebebeb;
+    background: linear-gradient(to bottom, #fafafa 0%, #ebebeb 100%);
+    padding: 15px 30px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.package-info__header__name {
+    display: block;
+    font-family: Bitter, 'Open Sans', Helvetica, sans-serif;
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.package-info__header__shortdesc {
+    display: block;
+    font-size: 17px;
+}
+
+.package-info__body {
+    display: block;
+    margin: 0 30px;
+}
+
+.block {
+    display: block;
+    overflow: hidden;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+
+.block__title {
+    display: block;
+    font-family: Bitter, 'Open Sans', Helvetica, sans-serif;
+    font-size: 16px;
+    padding: 10px 15px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+}
+
+.block__body {
+    color: #333;
+    padding: 10px 15px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.block__body.block__body--nopadding {
+    padding: 0;
+}
+
+.block__body__list {
+    display: block;
+    color: #555;
+}
+
+.block__body__list__item {
+    display: block;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 15px;
+}
+
+.block__body__list__item:last-child {
+    border-bottom: none;
+}
+
+.block__body__list__item:link,
+.block__body__list__item:visited {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    outline: none;
+}
+
+.block__body__list__item:link:hover {
+    background: #f5f5f5;
+}
+
+.block__body__list__item--kv .block__body__list__item__key {
+    display: block;
+    color: #333;
+    font-weight: bold;
+}
+
+.block__body__list__item--kv .block__body__list__item__value {
+    display: block;
+}
+
+.block__body__list__item__icon {
+    margin-right: 6px;
+}
+
+.depends-dot {
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    width: 8px;
+    height: 8px;
+    color: #777;
+    margin-right: 6px;
+}
+
+.depends-dot.depends-dot--depends,
+.depends-dot.depends-dot--pre-depends {
+    color: #c70036;
+    background: currentColor;
+}
+
+.depends-dot.depends-dot--recommends {
+    border-radius: 0;
+    color: #0040c7;
+    background: currentColor;
+}
+
+.depends-dot.depends-dot--suggests {
+    border-radius: 0;
+    color: #1ca000;
+    background: currentColor;
+    transform: rotate(45deg);
+}
+
+.depends-dot.depends-dot--enhances {
+    border-radius: 0;
+    color: #ffa500;
+}
+
+.depends-dot.depends-dot--conflicts,
+.depends-dot.depends-dot--breaks {
+    border-radius: 0;
+    color: #c70036;
+}
+
+.footer {
+    background: #e1e1e1;
+    box-shadow: inset 0 -1px 5px 0 rgba(0,0,0,0.1);
+    margin-top: 20px;
+    text-align: center;
+    padding: 15px 30px;
+    color: #444;
+}
+
+.version-table {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.version-table__row {
+    display: table-row;
+    border-bottom: 1px solid #ddd;
+}
+
+.version-table__row:last-child {
+    border-bottom: none;
+}
+
+.version-table__row.version-table__row--header {
+    font-weight: bold;
+    color: #333;
+}
+
+.version-table__col {
+    display: table-cell;
+    padding: 8px 14px;
+    border-right: 1px solid #ddd;
+}
+
+.version-table__col:last-child {
+    border-right: none;
+}
+
+.version-table__col--version {
+    width: 20%;
+    min-width: 125px;
+    max-width: 150px;
+    border-right: 4px solid #ddd;
+}
+
+.version-table__col--arch {
+    min-width: 100px;
+}
+
+.version-table__col a:link,
+.version-table__col a:visited {
+    display: inline-block;
+    vertical-align: middle;
+    white-space: no-wrap;
+    text-decoration: none;
+    outline: 0;
+    color: #36b;
+    background: #f0f0f0;
+    border: 1px solid #eaeaea;
+    padding: 2px 4px;
+    margin: 2px 8px;
+    margin-left: 0;
+}
+
+.version-table__col a:hover {
+    text-decoration: underline;
+}
+
+::selection {
+    background:#dae0ec;
+}
+
+::-moz-selection {
+    background:#dae0ec;
+}
+
+@media only screen and (min-width: 768px) {
+    .package-info__header__name {
+        display: inline-block;
+        vertical-align: middle;
+        margin-bottom: 0;
+    }
+    
+    .package-info__header__shortdesc:before {
+        display: inline-block;
+        content: '—';
+        padding-right: .8em;
+        padding-left: .8em;
+    }
+    
+    .package-info__header__shortdesc {
+        display: inline-block;
+        vertical-align: middle;
+        margin-bottom: 0;
+    }
+    
+    .package-info__body {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+    
+    .package-info__body__col {
+        display: block;
+        flex: 1;
+    }
+    
+    .package-info__body__col.package-info__body__col--main {
+        flex: 9;
+    }
+    
+    .package-info__body__col.package-info__body__col--sidebar {
+        flex: 3;
+    }
+    
+    .package-info__body__col.package-info__body__col--sidebar {
+        margin-left: 30px;
+    }
+
+    .block__body__list__item--kv .block__body__list__item__key {
+        display: inline-block;
+        vertical-align: top;
+        width: 25%;
+    }
+
+    .block__body__list__item--kv .block__body__list__item__value {
+        display: inline-block;
+        vertical-align: top;
+    }
+}
 `
 
 var distsTmpl = `
@@ -372,13 +700,13 @@ var pkgTmpl = `
 						<div class="block__body__list">
 							{{if .pkg.License}}
 								<div class="block__body__list__item block__body__list__item--kv">
-									<div class="block__body__list__item__key">License</div>
+									<div class="block__body__list__item__key"><i class="fa fa-gavel block__body__list__item__icon"></i> License</div>
 									<div class="block__body__list__item__value">{{.pkg.License}}</div>
 								</div>
 							{{end}}
 							{{if .pkg.Maintainer}}
 								<div class="block__body__list__item block__body__list__item--kv">
-									<div class="block__body__list__item__key">Maintainer</div>
+									<div class="block__body__list__item__key"><i class="fa fa-user block__body__list__item__icon"></i> Maintainer</div>
 									<div class="block__body__list__item__value">
 										<a href="mailto:{{.pkg.MaintainerEmail}}">{{.pkg.MaintainerName}}</a>
 									</div>
@@ -386,7 +714,7 @@ var pkgTmpl = `
 							{{end}}
 							{{if .pkg.Section}}
 								<div class="block__body__list__item block__body__list__item--kv">
-									<div class="block__body__list__item__key">Section</div>
+									<div class="block__body__list__item__key"><i class="fa fa-sliders block__body__list__item__icon"></i> Section</div>
 									<div class="block__body__list__item__value">{{.pkg.Section}}</div>
 								</div>
 							{{end}}
@@ -405,13 +733,10 @@ var pkgTmpl = `
 								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="pre-depends" class="depends-dot depends-dot--pre-depends"></span> {{$pkgspec}}</a>
 							{{end}}
 							{{range $pkgspec := .pkg.Recommends}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="recinnebds" class="depends-dot depends-dot--recommends"></span> {{$pkgspec}}</a>
+								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="recommends" class="depends-dot depends-dot--recommends"></span> {{$pkgspec}}</a>
 							{{end}}
 							{{range $pkgspec := .pkg.Suggests}}
 								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="suggests" class="depends-dot depends-dot--suggests"></span> {{$pkgspec}}</a>
-							{{end}}
-							{{range $pkgspec := .pkg.Enhances}}
-								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="enhances" class="depends-dot depends-dot--enhances"></span> {{$pkgspec}}</a>
 							{{end}}
 							{{range $pkgspec := .pkg.Conflicts}}
 								<a class="block__body__list__item" href="{{$.dist}}/{{$pkgspec | dependsToPkg}}"><span title="conflicts" class="depends-dot depends-dot--conflicts"></span> {{$pkgspec}}</a>
@@ -429,7 +754,7 @@ var pkgTmpl = `
 					<div class="block__body block__body--nopadding">
 						<div class="block__body__list">
 							{{range $otherDist := .pkg.OtherDists}}
-								<a href="{{$otherDist}}/{{$.pkgName}}" class="block__body__list__item">{{$otherDist}}</a>
+								<a href="{{$otherDist}}/{{$.pkgName}}" class="block__body__list__item"><i class="fa fa-link block__body__list__item__icon"></i> {{$otherDist}}</a>
 							{{end}}
 						</div>
 					</div>
@@ -439,7 +764,7 @@ var pkgTmpl = `
 					<div class="block__body block__body--nopadding">
 						<div class="block__body__list">
 							{{if .pkg.Homepage}}
-								<a href="{{.pkg.Homepage}}" class="block__body__list__item">Homepage</a>
+								<a href="{{.pkg.Homepage}}" class="block__body__list__item"><i class="fa fa-home block__body__list__item__icon"></i> Homepage</a>
 							{{end}}
 						</div>
 					</div>
