@@ -12,7 +12,7 @@ repogen supports signing, generating a Contents index, overriding the Maintainer
 6. Run `repogen --generate-contents ./private-key.asc ./in ./out`
 7. Run a web server of your choice with the `out` directory as the root. You will now be able to use this as your repository.
 
-### Usage:
+### Usage
 
 ````
 Usage: repogen [OPTIONS] PRIVATE_KEY_FILE INPUT_DIR OUTPUT_DIR
@@ -36,3 +36,9 @@ Arguments:
   INPUT_DIR is the path to the directory containing the deb packages. It should be in the following layout (and must not contain any unrelated files): INPUT_DIR/dist/component/*.deb
   OUTPUT_DIR is the path to place the generated repository in. It must not exist.
 ````
+
+### Screenshots
+
+| ![](docs/webui-package.png) |
+| --- |
+| Web Interface - Package |
