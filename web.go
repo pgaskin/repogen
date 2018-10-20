@@ -208,6 +208,7 @@ func (r *Repo) GenerateWeb() error {
 		err = render(filepath.Join(webRootDist, "index.html"), distName+" - Packages", "../", distTmpl, map[string]interface{}{
 			"dist":     distName,
 			"packages": dist,
+			"comps":    comps,
 		})
 		if err != nil {
 			return fmt.Errorf("error generating dist/index.html: %v", err)
@@ -460,6 +461,11 @@ body {
 
 .block__body.block__body--nopadding {
     padding: 0;
+}
+
+.block__body.block__body--monospace {
+	font-family: monospace;
+	white-space: nowrap;
 }
 
 .block__body__list {
@@ -774,6 +780,28 @@ var distTmpl = `
 				{{end}}
 			</div>
 		</div>
+	</div>
+	<div class="block" style="margin:15px 30px;">
+		<div class="block__title">Installation</div>
+		<div class="block__body block__body--monospace">
+			# Add the repository key<br />
+			<span style="color:#7a0874;font-weight:bold;">wget</span> <span style="color:#603">-O</span> - <span style="color:#f00;">'<span id="repo-key-url"><i>${REPO_URL}/key.asc</i></span>'</span> | <span style="color:#7a0874;font-weight:bold;">sudo apt-key add</span> - <br />
+			<br />
+			# Add the repository<br />
+			<span style="color:#7a0874;font-weight:bold;">echo</span> <span style="color:#f00;">'deb <span id="repo-url"><i>${REPO_URL}</i></span> {{.dist}}{{range .comps}} {{.}}{{end}}'</span> | <span style="color:#7a0874;font-weight:bold;">sudo tee</span> <span style="color:#603">-a</span> /etc/apt/sources.list<br />
+			<br />
+			# Update package lists<br />
+			<span style="color:#7a0874;font-weight:bold;">sudo apt update</span><br />
+			
+			<script>
+				document.addEventListener("DOMContentLoaded", function () {
+					document.getElementById("repo-url").innerHTML = "";
+					document.getElementById("repo-url").innerText = window.location.toString().split("/packages")[0];
+					document.getElementById("repo-key-url").innerHTML = "";
+					document.getElementById("repo-key-url").innerText = window.location.toString().split("/packages")[0] + "/key.asc";
+				});
+			</script>
+		</div> 
 	</div>
 {{end}}
 `

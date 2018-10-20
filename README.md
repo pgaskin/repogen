@@ -9,7 +9,7 @@ repogen supports signing, generating a Contents index, overriding the Maintainer
 3. Inside each distribution folder, create a folder for each component, such as `main` or `non-free`.
 4. Place the deb packages in the component folders.
 5. Export a gpg private key in ascii-armour format (with no passphrase) to `private-key.asc`
-6. Run `repogen --generate-contents ./private-key.asc ./in ./out`
+6. Run `repogen --generate-web --generate-contents ./private-key.asc ./in ./out`
 7. Run a web server of your choice with the `out` directory as the root. You will now be able to use this as your repository.
 
 ### Usage
