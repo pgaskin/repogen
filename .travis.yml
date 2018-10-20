@@ -18,9 +18,9 @@ script:
   - GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$APP_VERSION" -o "build/repogen-linux-64bit"
   - GOOS=linux GOARCH=386 go build -ldflags "-X main.version=$APP_VERSION" -o "build/repogen-linux-32bit"
   - GOOS=linux GOARCH=arm go build -ldflags "-X main.version=$APP_VERSION" -o "build/repogen-linux-arm"
-  - PKG_ARCH=amd64 PKG_OUT_ARCH=64bit nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_amd64.deb
-  - PKG_ARCH=i386 PKG_OUT_ARCH=32bit nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_i386.deb
-  - PKG_ARCH=armhf PKG_OUT_ARCH=arm nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_armhf.deb
+  - nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_amd64.deb
+  - sed -i 's/64bit/32bit/g' nfpm.yaml && sed -i 's/amd64/i386/g' nfpm.yaml && nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_i386.deb
+  - sed -i 's/32bit/arm/g' nfpm.yaml && sed -i 's/i386/armhf/g' nfpm.yaml && nfpm pkg -f nfpm.yaml -t build/repogen_${APP_VERSION_NO_V}_armhf.deb
 
 deploy:
   provider: script

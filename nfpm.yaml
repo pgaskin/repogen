@@ -1,5 +1,5 @@
 name: repogen
-arch: ${PKG_ARCH}
+arch: amd64
 platform: linux
 version: ${APP_VERSION_NO_V}
 section: utils
@@ -32,5 +32,5 @@ license: MIT
 
 bindir: /usr/bin
 files:
-  ./build/repogen-linux-${PKG_OUT_ARCH}: /usr/bin/repogen
+  ./build/repogen-linux-64bit: /usr/bin/repogen
 config_files:
