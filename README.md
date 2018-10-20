@@ -1,7 +1,7 @@
 # repogen
 repogen is an easy way to generate a Debian repository.
 
-repogen supports signing, generating a Contents index, overriding the Maintainer field on packages, automatically updating the repository, and more. A web UI is coming soon.
+repogen supports signing, generating a Contents index, overriding the Maintainer field on packages, a web interface, automatically updating the repository, and more.
 
 ### Quick Start
 1. Create a directory named `in`
