@@ -1,7 +1,7 @@
 # repogen
 repogen is an easy way to generate a Debian repository.
 
-repogen supports signing, generating a Contents index, overriding the Maintainer field on packages, a web interface, automatically updating the repository, and more.
+repogen supports signing, generating a Contents index, overriding the Maintainer field on packages, a web interface, package search, automatically updating the repository, and more.
 
 ### Installation
 repogen can be downloaded from the [releases](https://github.com/geek1011/repogen/releases/latest) page, or installed from the debian [repository](https://deb.geek1011.net/packages/stable/).
@@ -14,6 +14,8 @@ repogen can be downloaded from the [releases](https://github.com/geek1011/repoge
 5. Export a gpg private key in ascii-armour format (with no passphrase) to `private-key.asc`
 6. Run `repogen --generate-web --generate-contents ./private-key.asc ./in ./out`
 7. Run a web server of your choice with the `out` directory as the root. You will now be able to use this as your repository.
+
+Note: for repositories with >50 packages, it is recommended to install nodejs on the server so the packages are not indexed client-side.
 
 ### Usage
 

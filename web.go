@@ -98,6 +98,9 @@ func (r *Repo) GenerateWeb() error {
 					(*packages[distName][pkgName]).ShortDescription = strings.Split(pkg.Control.MightGet("Description"), "\n")[0]
 					(*packages[distName][pkgName]).License = pkg.Control.MightGet("License")
 					(*packages[distName][pkgName]).Maintainer = pkg.Control.MightGet("Maintainer")
+					if r.MaintainerOverride != "" {
+						(*packages[distName][pkgName]).Maintainer = r.MaintainerOverride
+					}
 					if m := regexp.MustCompile(`^(.+) <([^ ]+@[^ ]+)>$`).FindStringSubmatch(pkg.Control.MightGet("Maintainer")); len(m) == 3 {
 						(*packages[distName][pkgName]).MaintainerName = m[1]
 						(*packages[distName][pkgName]).MaintainerEmail = m[2]
@@ -179,23 +182,23 @@ func (r *Repo) GenerateWeb() error {
 		return fmt.Errorf("error writing repo json: %v", err)
 	}
 
+	for _, dist := range dists {
+		js, err := getSearchJS(dist, repoData)
+		if err != nil {
+			return fmt.Errorf("error generating search code: %v", err)
+		}
+		err = ioutil.WriteFile(filepath.Join(webRoot, "search."+dist+".js"), []byte(js), 0644)
+		if err != nil {
+			return fmt.Errorf("error writing repo search code: %v", err)
+		}
+	}
+
 	err = render(filepath.Join(webRoot, "index.html"), "Packages", "", distsTmpl, map[string]interface{}{
 		"dists":    dists,
 		"packages": packages,
 	})
 	if err != nil {
 		return fmt.Errorf("error generating index.html: %v", err)
-	}
-
-	err = os.Mkdir(filepath.Join(webRoot, "search"), 0755)
-	if err != nil {
-		return fmt.Errorf("error generating search/: %v", err)
-	}
-	err = render(filepath.Join(webRoot, "search", "index.html"), "Search - Packages", "../", searchTmpl, map[string]interface{}{
-		"js": template.JS(searchJS),
-	})
-	if err != nil {
-		return fmt.Errorf("error generating search/index.html: %v", err)
 	}
 
 	for distName, dist := range packages {
@@ -331,9 +334,14 @@ var baseTmpl = `
 				{{end}}
 			{{end}}
 		</div>
-		<div class="nav__section nav__section--left">
-			<a class="nav__section__item" href="../key.asc">GPG Key</a>
-			<a class="nav__section__item" href="search/">Search</a>
+		<div class="nav__section nav__section--right">
+			{{if .data.dist}}
+				<div class="search">
+					<input type="text" class="search__query" autocomplete="off" placeholder="Search packages">
+					<div class="search__results"></div>
+				</div>
+			{{end}}
+			<a class="nav__section__item nav__section__item--gpg" href="../key.asc">GPG Key</a>
 		</div>
 	</div>
 
@@ -344,6 +352,10 @@ var baseTmpl = `
 	<div class="footer">
 		Powered by <a href="https://github.com/geek1011/repogen">repogen</a>
 	</div>
+
+	{{if .data.dist}}
+		<script src="search.{{.data.dist}}.js"></script>
+	{{end}}
 </body>
 </html>
 `
@@ -684,6 +696,126 @@ body {
     display: block;
 }
 
+.nav__section__item.nav__section__item--gpg {
+	display: none;
+}
+
+.search {
+	margin-right: 18px;
+	margin-left: 15px;
+	width: 180px;
+	transition: width .5s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.search.search--focus {
+	width: 250px;
+}
+
+.search__query {
+	display: block;
+	width: 100%;
+	color: #fff;
+	background: #223055;
+	border: 1px solid #0e1322;
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(0, 0, 0, 0.6);
+	border-radius: 3px;
+	outline: 0;
+	padding: 4px 6px;
+}
+
+.search__query:focus {
+	box-shadow: 0 0 4px #1c1c4780;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+	border-color: #081a3e;
+	border-color: rgba(0, 0, 0, 0.5);
+}
+
+.search .search__results {
+	opacity: 0;
+	margin-top: -10000px;
+	transition: opacity .5s cubic-bezier(0.075, 0.82, 0.165, 1), margin 0s .5s;
+}
+
+.search.search--focus .search__results,
+.search__results:hover {
+	opacity: 1;
+	margin-top: 4px;
+	transition: opacity .5s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.search__results {
+	position: absolute;
+	overflow: hidden;
+	width: inherit;
+	margin-top: 4px;
+	background: #fff;
+	border: 1px solid #CCD0DC;
+	border-radius: 3px;
+	color: #000;
+}
+
+.search__results:empty {
+	display: none;
+}
+
+.search__results__none {
+	padding: 4px 6px;
+	font-size: 13px;
+}
+
+.search__results__result,
+.search__results__result:link,
+.search__results__result:visited {
+	display: block;
+	border-bottom: 1px solid #CCD0DC;
+	padding: 4px 6px;
+	font-size: 13px;
+	color: inherit;
+	outline: 0;
+	text-decoration: none;
+}
+
+.search__results__result:last-child {
+	border-bottom: none;
+}
+
+.search__results__result:hover,
+.search__results__result.search__results__result--focus,
+.search__results:hover .search__results__result.search__results__result--focus:hover {
+	background: #f5f5f5;
+}
+
+.search__results:hover .search__results__result.search__results__result--focus {
+	background: transparent;
+}
+
+.search__results__result:active {
+	background: #ececec;
+}
+
+.search__results__result__package {
+	font-weight: bold;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.search__results__result__version {
+	color: #555;
+	float: right;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.search__results__result__description {
+	clear: both;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 @media only screen and (min-width: 768px) {
     .package-info__header__name {
         display: inline-block;
@@ -747,6 +879,25 @@ body {
 		margin-right: 15px;
 		margin-left: 15px;
 		width: 150px;
+	}
+
+	.nav__section__item.nav__section__item--gpg {
+		display: inline-block;
+	}
+	
+	.search {
+		width: 250px;
+	}
+	
+	.search.search--focus {
+		width: 300px;
+	}
+}
+
+@media only screen and (max-width: 450px) {
+	.nav {
+		flex-direction: column;
+		padding-bottom: 15px;
 	}
 }
 `
@@ -962,14 +1113,3 @@ var pkgTmpl = `
 	</div>
 {{end}}
 `
-
-var searchTmpl = `
-{{define "content"}}
-	<div class="header header--center">Search</div>
-	<!-- TODO: search form -->
-	Coming soon
-	<script>{{.js}}</script>
-{{end}}
-`
-
-var searchJS = ``
