@@ -1,15 +1,15 @@
 sudo: false
 language: go
 go:
- - 1.10.x
+ - 1.12.x
 
 install:
-  - go get github.com/kardianos/govendor
   - go get github.com/tcnksm/ghr
   - go get github.com/goreleaser/nfpm/cmd/nfpm
+  - go install github.com/goreleaser/nfpm/cmd/nfpm
 
 script:
-  - govendor sync
+  - go mod download
   - go generate
   - go test ./...
   - export APP_VERSION=$(git describe --tags --always --dirty)
