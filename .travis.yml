@@ -10,6 +10,7 @@ install:
   - go install github.com/tcnksm/ghr
 
 script:
+  - export GO111MODULE=on
   - go mod download
   - go generate
   - go test ./...
