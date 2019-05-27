@@ -80,44 +80,46 @@ func (r *Repo) GenerateWeb() error {
 					}
 				}
 
-				if _, ok := (*packages[distName][pkgName]).Availability[pkgVersion]; !ok {
-					(*packages[distName][pkgName]).Availability[pkgVersion] = map[string]map[string]string{}
+				wpkg := packages[distName][pkgName]
+
+				if _, ok := wpkg.Availability[pkgVersion]; !ok {
+					packages[distName][pkgName].Availability[pkgVersion] = map[string]map[string]string{}
 				}
-				if _, ok := (*packages[distName][pkgName]).Availability[pkgArch][pkgArch]; !ok {
-					(*packages[distName][pkgName]).Availability[pkgVersion][pkgArch] = map[string]string{}
+				if _, ok := wpkg.Availability[pkgArch][pkgArch]; !ok {
+					packages[distName][pkgName].Availability[pkgVersion][pkgArch] = map[string]string{}
 				}
-				if _, ok := (*packages[distName][pkgName]).Availability[pkgVersion][pkgArch][compName]; !ok {
-					(*packages[distName][pkgName]).Availability[pkgVersion][pkgArch][compName] = fmt.Sprintf("pool/%s/%s/%s/%s_%s_%s.deb", compName, getLetter(pkgName), pkgName, pkgName, pkgVersion, pkgArch)
+				if _, ok := wpkg.Availability[pkgVersion][pkgArch][compName]; !ok {
+					packages[distName][pkgName].Availability[pkgVersion][pkgArch][compName] = fmt.Sprintf("pool/%s/%s/%s/%s_%s_%s.deb", compName, getLetter(pkgName), pkgName, pkgName, pkgVersion, pkgArch)
 				}
 
-				if packages[distName][pkgName].Package == "" || anewer(pkgVersion, (*packages[distName][pkgName]).LatestVersion) {
+				if packages[distName][pkgName].Package == "" || anewer(pkgVersion, packages[distName][pkgName].LatestVersion) {
 					// fill in fields, as this is the newest version so far
-					(*packages[distName][pkgName]).Package = pkgName
-					(*packages[distName][pkgName]).LatestVersion = pkgVersion
-					(*packages[distName][pkgName]).Description = pkg.Control.MightGet("Description")
-					(*packages[distName][pkgName]).ShortDescription = strings.Split(pkg.Control.MightGet("Description"), "\n")[0]
-					(*packages[distName][pkgName]).License = pkg.Control.MightGet("License")
-					(*packages[distName][pkgName]).Maintainer = pkg.Control.MightGet("Maintainer")
+					wpkg.Package = pkgName
+					wpkg.LatestVersion = pkgVersion
+					wpkg.Description = pkg.Control.MightGet("Description")
+					wpkg.ShortDescription = strings.Split(pkg.Control.MightGet("Description"), "\n")[0]
+					wpkg.License = pkg.Control.MightGet("License")
+					wpkg.Maintainer = pkg.Control.MightGet("Maintainer")
 					if r.MaintainerOverride != "" {
-						(*packages[distName][pkgName]).Maintainer = r.MaintainerOverride
+						wpkg.Maintainer = r.MaintainerOverride
 					}
 					if m := regexp.MustCompile(`^(.+) <([^ ]+@[^ ]+)>$`).FindStringSubmatch(pkg.Control.MightGet("Maintainer")); len(m) == 3 {
-						(*packages[distName][pkgName]).MaintainerName = m[1]
-						(*packages[distName][pkgName]).MaintainerEmail = m[2]
+						wpkg.MaintainerName = m[1]
+						wpkg.MaintainerEmail = m[2]
 					} else {
-						(*packages[distName][pkgName]).MaintainerName = pkg.Control.MightGet("Maintainer")
+						wpkg.MaintainerName = pkg.Control.MightGet("Maintainer")
 					}
-					(*packages[distName][pkgName]).DownloadSize = pkg.Size
-					(*packages[distName][pkgName]).Homepage = pkg.Control.MightGet("Homepage")
-					(*packages[distName][pkgName]).Depends = splitList(pkg.Control.MightGet("Depends"))
-					(*packages[distName][pkgName]).PreDepends = splitList(pkg.Control.MightGet("Pre-Depends"))
-					(*packages[distName][pkgName]).Recommends = splitList(pkg.Control.MightGet("Recommends"))
-					(*packages[distName][pkgName]).Suggests = splitList(pkg.Control.MightGet("Suggests"))
-					(*packages[distName][pkgName]).Breaks = splitList(pkg.Control.MightGet("Breaks"))
-					(*packages[distName][pkgName]).Enhances = splitList(pkg.Control.MightGet("Enhances"))
-					(*packages[distName][pkgName]).Conflicts = splitList(pkg.Control.MightGet("Conflicts"))
-					(*packages[distName][pkgName]).Section = pkg.Control.MightGet("Section")
-					(*packages[distName][pkgName]).Fields = pkg.Control.Values
+					wpkg.DownloadSize = pkg.Size
+					wpkg.Homepage = pkg.Control.MightGet("Homepage")
+					wpkg.Depends = splitList(pkg.Control.MightGet("Depends"))
+					wpkg.PreDepends = splitList(pkg.Control.MightGet("Pre-Depends"))
+					wpkg.Recommends = splitList(pkg.Control.MightGet("Recommends"))
+					wpkg.Suggests = splitList(pkg.Control.MightGet("Suggests"))
+					wpkg.Breaks = splitList(pkg.Control.MightGet("Breaks"))
+					wpkg.Enhances = splitList(pkg.Control.MightGet("Enhances"))
+					wpkg.Conflicts = splitList(pkg.Control.MightGet("Conflicts"))
+					wpkg.Section = pkg.Control.MightGet("Section")
+					wpkg.Fields = pkg.Control.Values
 				}
 			}
 		}
@@ -131,7 +133,7 @@ func (r *Repo) GenerateWeb() error {
 		for pkgName := range tmp {
 			for _, checkDist := range dists {
 				if _, ok := packages[checkDist][pkgName]; ok {
-					(*packages[distName][pkgName]).OtherDists = append((*packages[distName][pkgName]).OtherDists, checkDist)
+					packages[distName][pkgName].OtherDists = append(packages[distName][pkgName].OtherDists, checkDist)
 				}
 			}
 		}
@@ -139,10 +141,10 @@ func (r *Repo) GenerateWeb() error {
 
 	for distName, tmp := range packages {
 		for pkgName := range tmp {
-			(*packages[distName][pkgName]).AvailabilityTableHeader = append([]string{""}, archs...)
+			packages[distName][pkgName].AvailabilityTableHeader = append([]string{""}, archs...)
 
 			t := [][]map[string]string{}
-			for pversion, parchs := range (*packages[distName][pkgName]).Availability {
+			for pversion, parchs := range packages[distName][pkgName].Availability {
 				row := []map[string]string{{"version": pversion}}
 				for _, arch := range archs {
 					col := map[string]string{}
@@ -157,7 +159,7 @@ func (r *Repo) GenerateWeb() error {
 				}
 				t = append(t, row)
 			}
-			(*packages[distName][pkgName]).AvailabilityTable = t
+			packages[distName][pkgName].AvailabilityTable = t
 
 			sort.Slice(t, func(i, j int) bool {
 				return !anewer(t[i][0]["version"], t[j][0]["version"])
