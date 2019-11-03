@@ -1,4 +1,4 @@
-package main
+package repogen
 
 // This file is from https://github.com/knqyf263/go-deb-version
 /* MIT License

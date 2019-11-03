@@ -1,4 +1,4 @@
-package main
+package repogen
 
 import (
 	"bytes"
@@ -431,12 +431,16 @@ func sha1sum(data []byte) []byte {
 	return s.Sum(nil)
 }
 
-func sha256sum(data []byte) []byte {
+func Sha256sum(data []byte) []byte {
 	s := sha256.New()
 	if _, err := s.Write(data); err != nil {
 		panic(err)
 	}
 	return s.Sum(nil)
+}
+
+func sha256sum(data []byte) []byte {
+    return Sha256sum(data)
 }
 
 func sha512sum(data []byte) []byte {
