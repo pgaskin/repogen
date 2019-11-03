@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattn/go-zglob"
 	"github.com/spf13/pflag"
-    . "github.com/geek1011/repogen"
+    "github.com/geek1011/repogen"
 )
 
 var version = "unknown"
@@ -125,7 +125,7 @@ func main() {
 
 			fs = append(fs, fmt.Sprint(s1))
 			sort.Strings(fs)
-			if s := fmt.Sprintf("%x", Sha256sum([]byte(strings.Join(fs, ";")))); ls != s {
+			if s := fmt.Sprintf("%x", repogen.Sha256sum([]byte(strings.Join(fs, ";")))); ls != s {
 				ls = s
 				break
 			}
@@ -136,7 +136,7 @@ func main() {
 		fmt.Println("Info: updating repo")
 
 		os.RemoveAll(outRoot)
-		r, err := NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
+		r, err := repogen.NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: could not generate repository: %v\n", err)
 			os.Exit(1)
