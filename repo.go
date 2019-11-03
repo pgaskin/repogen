@@ -440,7 +440,7 @@ func Sha256sum(data []byte) []byte {
 }
 
 func sha256sum(data []byte) []byte {
-    return Sha256sum(data)
+	return Sha256sum(data)
 }
 
 func sha512sum(data []byte) []byte {

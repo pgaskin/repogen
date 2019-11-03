@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/geek1011/repogen"
 	"github.com/mattn/go-zglob"
 	"github.com/spf13/pflag"
-    "github.com/geek1011/repogen"
 )
 
 var version = "unknown"
