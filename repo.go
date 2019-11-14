@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattn/go-zglob"
 	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/openpgp/packet"
@@ -405,6 +406,112 @@ func (r *Repo) MakeRoot() error {
 		return fmt.Errorf("error writing pubkey file: %v", err)
 	}
 
+	return nil
+}
+
+func (r *Repo) ServeRepo(watch, generateWeb bool, buf []byte, inRoot, outRoot string, watchInterval int) error {
+	var ls string
+	for {
+		for {
+			if !watch {
+				break
+			}
+
+			fs, err := zglob.Glob(filepath.Join(inRoot, "**", "*.deb"))
+			if err != nil {
+				fmt.Errorf("Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
+				time.Sleep(time.Duration(watchInterval) * time.Second)
+				continue
+			}
+
+			var e bool
+			var s1, s2 int64
+			for _, fn := range fs {
+				if fi, err := os.Stat(fn); err != nil {
+					return fmt.Errorf("Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
+					e = true
+					break
+				} else {
+					s1 += fi.Size()
+				}
+			}
+			if e {
+				time.Sleep(time.Duration(watchInterval) * time.Second)
+				continue
+			}
+			time.Sleep(time.Second)
+			for _, fn := range fs {
+				if fi, err := os.Stat(fn); err != nil {
+					return fmt.Errorf("Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
+					e = true
+					break
+				} else {
+					s2 += fi.Size()
+				}
+			}
+			if e {
+				time.Sleep(time.Duration(watchInterval) * time.Second)
+				continue
+			}
+
+			if s1 != s2 {
+				fmt.Errorf("Warning: file probably still being written (will check again in 2s): total size of input directory changed: %d -> %d\n", s1, s2)
+				time.Sleep(time.Second * 2)
+				continue
+			}
+
+			fs = append(fs, fmt.Sprint(s1))
+			sort.Strings(fs)
+			if s := fmt.Sprintf("%x", Sha256sum([]byte(strings.Join(fs, ";")))); ls != s {
+				ls = s
+				break
+			}
+
+			time.Sleep(time.Duration(watchInterval) * time.Second)
+		}
+
+		fmt.Println("Info: updating repo")
+
+		os.RemoveAll(outRoot)
+		//r, err := NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
+		//if err != nil {
+		//return fmt.Errorf("Error: could not generate repository: %v\n", err)
+		//}
+
+		err := r.Scan()
+		if err != nil {
+			return fmt.Errorf("Error: could not generate repository: could not scan deb packages: %v\n", err)
+		}
+
+		err = r.MakePool()
+		if err != nil {
+			return fmt.Errorf("Error: could not generate repository: could not generate pool: %v\n", err)
+		}
+
+		err = r.MakeDist()
+		if err != nil {
+			return fmt.Errorf("Error: could not generate repository: could not generate dists: %v\n", err)
+		}
+
+		err = r.MakeRoot()
+		if err != nil {
+			return fmt.Errorf("Error: could not generate repository: %v\n", err)
+		}
+
+		if generateWeb {
+			err = r.GenerateWeb()
+			if err != nil {
+				return fmt.Errorf("Error: could not generate web interface: %v\n", err)
+			}
+		}
+
+		if !watch {
+			break
+		}
+
+		fmt.Println("Info: waiting for changes")
+	}
+	fmt.Println("Info: successfully generated repository")
 	return nil
 }
 
