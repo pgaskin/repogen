@@ -473,12 +473,13 @@ func (r *Repo) ServeRepo(watch, generateWeb bool, buf []byte, inRoot, outRoot st
 		fmt.Println("Info: updating repo")
 
 		os.RemoveAll(outRoot)
-		//r, err := NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
-		//if err != nil {
-		//return fmt.Errorf("Error: could not generate repository: %v\n", err)
-		//}
+		var err error
+		r, err = NewRepo(r.InRoot, r.OutRoot, r.GenerateContents, r.MaintainerOverride, r.Origin, r.Description, string(buf))
+		if err != nil {
+			return fmt.Errorf("Error: could not generate repository: %v\n", err)
+		}
 
-		err := r.Scan()
+		err = r.Scan()
 		if err != nil {
 			return fmt.Errorf("Error: could not generate repository: could not scan deb packages: %v\n", err)
 		}
