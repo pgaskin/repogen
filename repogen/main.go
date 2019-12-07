@@ -5,11 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
+	//"sort"
+	//"strings"
 	"time"
 
-	"github.com/mattn/go-zglob"
+	"github.com/geek1011/repogen"
+	//"github.com/mattn/go-zglob"
 	"github.com/spf13/pflag"
 )
 
@@ -72,112 +73,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	var ls string
-	for {
-		for {
-			if !*watch {
-				break
-			}
-
-			fs, err := zglob.Glob(filepath.Join(inRoot, "**", "*.deb"))
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
-				time.Sleep(*watchInterval)
-				continue
-			}
-
-			var e bool
-			var s1, s2 int64
-			for _, fn := range fs {
-				if fi, err := os.Stat(fn); err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
-					e = true
-					break
-				} else {
-					s1 += fi.Size()
-				}
-			}
-			if e {
-				time.Sleep(*watchInterval)
-				continue
-			}
-			time.Sleep(time.Second)
-			for _, fn := range fs {
-				if fi, err := os.Stat(fn); err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: could not search for files in input directory '%s': %v\n", outRoot, err)
-					e = true
-					break
-				} else {
-					s2 += fi.Size()
-				}
-			}
-			if e {
-				time.Sleep(*watchInterval)
-				continue
-			}
-
-			if s1 != s2 {
-				fmt.Fprintf(os.Stderr, "Warning: file probably still being written (will check again in 2s): total size of input directory changed: %d -> %d\n", s1, s2)
-				time.Sleep(time.Second * 2)
-				continue
-			}
-
-			fs = append(fs, fmt.Sprint(s1))
-			sort.Strings(fs)
-			if s := fmt.Sprintf("%x", sha256sum([]byte(strings.Join(fs, ";")))); ls != s {
-				ls = s
-				break
-			}
-
-			time.Sleep(*watchInterval)
-		}
-
-		fmt.Println("Info: updating repo")
-
-		os.RemoveAll(outRoot)
-		r, err := NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not generate repository: %v\n", err)
-			os.Exit(1)
-		}
-
-		err = r.Scan()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not generate repository: could not scan deb packages: %v\n", err)
-			os.Exit(1)
-		}
-
-		err = r.MakePool()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not generate repository: could not generate pool: %v\n", err)
-			os.Exit(1)
-		}
-
-		err = r.MakeDist()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not generate repository: could not generate dists: %v\n", err)
-			os.Exit(1)
-		}
-
-		err = r.MakeRoot()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: could not generate repository: %v\n", err)
-			os.Exit(1)
-		}
-
-		if *generateWeb {
-			err = r.GenerateWeb()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: could not generate web interface: %v\n", err)
-				os.Exit(1)
-			}
-		}
-
-		if !*watch {
-			break
-		}
-
-		fmt.Println("Info: waiting for changes")
+	r, err := repogen.NewRepo(inRoot, outRoot, *generateContents, *maintainerOverride, *origin, *description, string(buf))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: could not set up repo'%s': %v\n", *origin, err)
+		os.Exit(1)
 	}
-	fmt.Println("Info: successfully generated repository")
+	if err = r.ServeRepo(*watch, *generateWeb, buf, inRoot, outRoot, int(*watchInterval)); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: could not serve up repo'%s': %v\n", *origin, err)
+		os.Exit(1)
+	} else {
+		os.Exit(0)
+	}
 }

@@ -5,5 +5,5 @@ out
 test.sh
 build
 ui
-repogen
+repogen/repogen
 *.asc
