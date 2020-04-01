@@ -31,6 +31,7 @@ type Repo struct {
 	OutRoot            string
 	Dists              map[string]map[string][]*Deb // packages = Dists[dist][component]
 	GenerateContents   bool
+	Symlink            bool
 	MaintainerOverride string
 	Origin             string
 	Description        string
@@ -72,6 +73,7 @@ func NewRepo(in, out string, generateContents bool, maintainerOverride, origin, 
 		OutRoot:            out,
 		Dists:              map[string]map[string][]*Deb{},
 		GenerateContents:   generateContents,
+		Symlink:            false,
 		MaintainerOverride: maintainerOverride,
 		Origin:             origin,
 		Description:        description,
@@ -171,6 +173,14 @@ func (r *Repo) MakePool() error {
 
 				pkgFName := filepath.Join(pkgRoot, fmt.Sprintf("%s_%s_%s.deb", pkgName, pkgVer, pkgArch))
 
+				if r.Symlink {
+					_ = os.Remove(pkgFName)
+					if err := os.Symlink(d.Filename, pkgFName); err != nil {
+						return fmt.Errorf("error creating package symlink: %v", err)
+					}
+					continue
+				}
+
 				f, err := os.Open(d.Filename)
 				if err != nil {
 					return fmt.Errorf("error opening package file '%s' for copying: %v", d.Filename, err)
@@ -184,8 +194,7 @@ func (r *Repo) MakePool() error {
 					return fmt.Errorf("error opening output package file '%s' for copying: %v", pkgFName, err)
 				}
 
-				_, err = io.Copy(of, f)
-				if err != nil {
+				if _, err = io.Copy(of, f); err != nil {
 					of.Close()
 					f.Close()
 					return fmt.Errorf("error writing package file: %v", err)
@@ -211,12 +220,7 @@ func (r *Repo) MakeDist() error {
 		if err := os.MkdirAll(distRoot, 0755); err != nil {
 			return fmt.Errorf("error making dist dir: %v", err)
 		}
-		compNames := []string{}
-		archNames := []string{}
-		md5Sums := []string{}
-		sha1Sums := []string{}
-		sha256Sums := []string{}
-		sha512Sums := []string{}
+		var compNames, archNames, md5Sums, sha1Sums, sha256Sums, sha512Sums []string
 		for compName, comp := range dist {
 			compRoot := filepath.Join(distRoot, compName)
 			if err := os.MkdirAll(compRoot, 0755); err != nil {

@@ -32,6 +32,7 @@ Options:
   -h, --help                         show this help text
   -m, --maintainer-override string   overrides the maintainer of all packages (format: First Last <email@address.com>)
   -o, --origin string                sets the origin field used in the Release file (this field is used as a user-friendly way to identify the repository) (default "repogen")
+  -l, --symlink                      Symlink packages instead of copying them
       --version                      show the version
   -w, --watch                        watch the input directory for new packages
   -i, --watch-interval duration      the interval to check for new packages (if watch is enabled) (default 1s)
