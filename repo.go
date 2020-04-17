@@ -175,7 +175,11 @@ func (r *Repo) MakePool() error {
 
 				if r.Symlink {
 					_ = os.Remove(pkgFName)
-					if err := os.Symlink(d.Filename, pkgFName); err != nil {
+					rp, err := filepath.Rel(filepath.Dir(pkgFName), d.Filename)
+					if err != nil {
+						rp = d.Filename
+					}
+					if err := os.Symlink(rp, pkgFName); err != nil {
 						return fmt.Errorf("error creating package symlink: %v", err)
 					}
 					continue
