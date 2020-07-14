@@ -4,7 +4,7 @@ repogen is an easy way to generate a Debian repository.
 repogen supports signing, generating a Contents index, overriding the Maintainer field on packages, a web interface, package search, automatically updating the repository, and more.
 
 ### Installation
-repogen can be downloaded from the [releases](https://github.com/geek1011/repogen/releases/latest) page, or installed from the debian [repository](https://deb.geek1011.net/packages/stable/).
+repogen can be downloaded from the [releases](https://github.com/pgaskin/repogen/releases/latest) page, or installed from the debian [repository](https://deb.geek1011.net/packages/stable/).
 
 ### Quick Start
 1. Create a directory named `in`

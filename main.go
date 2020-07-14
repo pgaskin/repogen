@@ -16,6 +16,7 @@ import (
 var version = "unknown"
 
 func main() {
+	// TODO: cache contents and control as gzipped JSON (strict) to .cache/repogen/v{DEB-PARSER-REVISION}/{SHA1-OF-PATH}-{FILE-SIZE}-{FILE-CTIME}
 	// TODO: refactor the entire thing (it's a mess)
 	maintainerOverride := pflag.StringP("maintainer-override", "m", "", "overrides the maintainer of all packages (format: First Last <email@address.com>)")
 	origin := pflag.StringP("origin", "o", "repogen", "sets the origin field used in the Release file (this field is used as a user-friendly way to identify the repository)")

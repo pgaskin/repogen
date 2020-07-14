@@ -352,7 +352,7 @@ var baseTmpl = `
 	</div>
 
 	<div class="footer">
-		Powered by <a href="https://github.com/geek1011/repogen">repogen</a>
+		Powered by <a href="https://github.com/pgaskin/repogen">repogen</a>
 	</div>
 
 	{{if .data.dist}}

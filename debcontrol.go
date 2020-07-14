@@ -27,6 +27,8 @@ func NewControlFromString(in string) (*Control, error) {
 		Order:  []string{},
 	}
 
+	// TODO: rewrite using byte slices and a scanner instead
+
 	var cur string
 	lines := strings.Split(strings.Trim(strings.Replace(in, "\r\n", "\n", -1), "\n")+"\n", "\n") // normalize newline format, trailing newlines
 	for n, line := range lines {

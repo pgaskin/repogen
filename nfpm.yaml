@@ -12,7 +12,7 @@ recommends:
 suggests:
 conflicts:
 
-maintainer: Patrick Gaskin <geek1011@outlook.com>
+maintainer: Patrick Gaskin <patrick@pgaskin.net>
 description: |1
   easy-to-use debian repository generator
   repogen is an easy way to generate Debian repositories.
@@ -27,7 +27,7 @@ description: |1
   - GPG signing
   - Automatic updating
 vendor: Patrick Gaskin
-homepage: https://github.com/geek1011/repogen
+homepage: https://github.com/pgaskin/repogen
 license: MIT
 
 bindir: /usr/bin

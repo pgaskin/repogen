@@ -1,4 +1,4 @@
-module github.com/geek1011/repogen
+module github.com/pgaskin/repogen
 
 go 1.12
 
