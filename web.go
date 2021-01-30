@@ -946,10 +946,11 @@ var distTmpl = `
 			
 			<script>
 				document.addEventListener("DOMContentLoaded", function () {
+					var url = window.location.toString().match(/^(.*)\/packages\/.+?$/)[1];
 					document.getElementById("repo-url").innerHTML = "";
-					document.getElementById("repo-url").innerText = window.location.toString().split("/packages")[0];
+					document.getElementById("repo-url").innerText = url;
 					document.getElementById("repo-key-url").innerHTML = "";
-					document.getElementById("repo-key-url").innerText = window.location.toString().split("/packages")[0] + "/key.asc";
+					document.getElementById("repo-key-url").innerText = url + "/key.asc";
 				});
 			</script>
 		</div> 
